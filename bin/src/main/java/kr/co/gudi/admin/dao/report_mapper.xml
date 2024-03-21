@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+ <mapper namespace="kr.co.gudi.admin.dao.ReportDAO">
+	<select id="reportListCall" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_num, r.user_id, r.report_type, r.report_date, r.report_content, r.report_state, h.rephis_date
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				ORDER BY r.report_num DESC LIMIT 10 OFFSET #{param1}
+	</select>
+	
+	<select id="totalPage" resultType="int">
+		SELECT CEIL(COUNT(report_num)/5) AS pages FROM report
+	</select>
+	
+	<select id="reportDetail" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_get, r.report_num, r.user_id, r.report_content, r.report_type, r.report_date, r.report_state, h.rephis_date, h.ad_id, h.rephis_content, h.rephis_date
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				WHERE r.report_num = #{param1};
+	</select>
+	
+	<update id="updateState">
+		UPDATE report SET report_state = 1 WHERE report_num = #{param1} AND report_state=0
+	</update>
+	
+	<insert id="insertHistory">
+		INSERT INTO report_history(report_num, ad_id, rephis_date)
+			VALUES (#{param1},#{param2},CURDATE())
+				ON DUPLICATE KEY UPDATE report_num = report_num
+	</insert>
+	
+	<update id="updateRepHistory">
+		UPDATE report_history
+			SET 
+				rephis_content = #{param1},
+				rephis_date = CURDATE()
+			WHERE report_num=#{param2}
+	</update>
+	
+	<insert id="sendNote">
+		INSERT INTO note (receiver, sender, note_subject, note_content)
+			VALUES (
+				(SELECT user_id FROM report WHERE report_num=#{param2}),
+				(SELECT ad_id FROM report_history WHERE report_num=#{param2}),
+				'신고 문의에 대한 답변 입니다.',
+				#{param1}				
+			)
+	</insert>
+	
+	<update id="updateRepState">
+		UPDATE report SET report_state = 2 WHERE report_num = #{param1} AND report_state=1
+	</update>
+	
+	<select id="optionListCall" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_num, r.user_id, r.report_type, r.report_date, r.report_content, r.report_state, h.rephis_date 
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				WHERE r.report_state = #{param2}	
+			ORDER BY r.report_num DESC LIMIT 10 OFFSET #{param1}
+	</select>
+	
+	<select id="typeListCall" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_num, r.user_id, r.report_type, r.report_date, r.report_content, r.report_state, h.rephis_date 
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				WHERE r.report_type = #{param2}	
+			ORDER BY r.report_num DESC LIMIT 10 OFFSET #{param1}
+	</select>
+	
+	<select id="reportDatePickSend" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_num, r.user_id, r.report_type, r.report_date, r.report_content, r.report_state, h.rephis_date
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				WHERE r.report_date = #{param1}
+				ORDER BY r.report_num DESC LIMIT 10 OFFSET #{param2}
+	</select>
+	
+		<select id="reportDatePickHandle" resultType="kr.co.gudi.admin.dto.ReportDTO">
+		SELECT r.report_num, r.user_id, r.report_type, r.report_date, r.report_content, r.report_state, h.rephis_date
+			FROM report r LEFT OUTER JOIN report_history h ON r.report_num = h.report_num 
+				WHERE h.rephis_date = #{param1}
+				ORDER BY r.report_num DESC LIMIT 10 OFFSET #{param2}
+	</select>
+	
+</mapper>

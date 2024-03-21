@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+    <mapper namespace="kr.co.gudi.reserve.dao.ReserveDAO">
+	
+	<select id="myAni" resultType="kr.co.gudi.reserve.dto.ReserveDTO">
+		SELECT a_name,a_kind,a_spec FROM animal
+			WHERE user_id = #{param1}
+	</select>
+	
+	<select id="findCom_id" resultType="String">
+		SELECT user_id FROM company
+			WHERE com_name=#{param1}
+	</select>
+	
+	<select id="lat" resultType="Map">
+		SELECT lat,lon FROM company where user_id=#{param1}
+	</select>	
+	
+	<select id="tPrice" resultType="String">
+		SELECT price FROM company
+			WHERE user_id=#{param1}
+	</select>
+	
+	<!-- <select id="tAmPrice" resultType="String">
+	SELECT tp.t_price
+		FROM company cp
+		JOIN ticket_price tp ON cp.com_num = tp.com_num
+		WHERE cp.com_num = 1 and tp.t_type='0'
+	</select>
+	
+	<select id="tPmPrice" resultType="String">
+	SELECT tp.t_price
+		FROM company cp
+		JOIN ticket_price tp ON cp.com_num = tp.com_num
+		WHERE cp.com_num = 1 and tp.t_type='1'
+	</select> -->
+	
+	<select id="p3Price" resultType="String">
+	SELECT pp.p_price
+		FROM company cp
+		JOIN pick_price pp ON cp.com_num = pp.com_num
+		WHERE cp.com_num = 1 and pp.p_section='3'
+	</select>
+	
+	<select id="p5Price" resultType="String">
+	SELECT pp.p_price
+		FROM company cp
+		JOIN pick_price pp ON cp.com_num = pp.com_num
+		WHERE cp.com_num = 1 and pp.p_section='5'
+	</select>
+	
+	<select id="p10Price" resultType="String">
+	SELECT pp.p_price
+		FROM company cp
+		JOIN pick_price pp ON cp.com_num = pp.com_num
+		WHERE cp.com_num = 1 and pp.p_section='10'
+	</select>
+	
+	<select id="revInfo" resultType="hashmap" parameterType="string">
+    <![CDATA[
+        SELECT
+    date_range.date AS formatted_date,
+    COUNT(reserve.r_num) AS reservation_count
+FROM (
+    SELECT DISTINCT
+        DATE_ADD(STR_TO_DATE(r_start, '%Y-%m-%d'), INTERVAL a.a DAY) AS date
+    FROM reserve
+    CROSS JOIN (
+        SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+    ) AS a
+    WHERE com_id = #{param1}
+    AND STR_TO_DATE(r_start, '%Y-%m-%d') BETWEEN CURDATE() AND CURDATE() + INTERVAL 89 DAY
+) AS date_range
+LEFT JOIN reserve
+    ON date_range.date BETWEEN STR_TO_DATE(reserve.r_start, '%Y-%m-%d') AND STR_TO_DATE(reserve.r_end, '%Y-%m-%d')
+    AND reserve.com_id = #{param1}
+GROUP BY date_range.date
+ORDER BY formatted_date;
+    ]]>
+</select>
+	
+	<insert id="writeNote">
+		INSERT INTO note(receiver, sender, note_subject, note_content)
+			VALUES (
+				#{receiver},
+				#{sender},
+				#{subject},
+				#{content}
+			)
+	</insert>
+	
+
+	<select id="findReceiver" resultType="kr.co.gudi.reserve.dto.ReserveDTO">
+		SELECT * FROM reserve
+			WHERE r_num = #{param1}
+	</select>
+	
+	<select id="findAcc" resultType="int">
+		SELECT accept FROM company
+			WHERE user_id=#{param1}
+	</select>
+	
+	<select id="findPick" resultType="String">
+		select pickup from company 
+			where user_id=#{param1}
+	</select>
+	
+	
+</mapper>
