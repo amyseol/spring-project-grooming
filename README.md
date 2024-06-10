@@ -42,5 +42,3 @@ IDE : STS(Spring Tool Suite)<br/>
 - 일반문의
 - 신고문의
 - 로그인 / 회원가입 유효성 검사 
-
-## How To Start
